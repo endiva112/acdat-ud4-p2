@@ -4,9 +4,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -42,19 +39,17 @@ public class Main {
         int opcion;
 
         do {
-            System.out.println("\n╔════════════════════════════════════════╗");
+            System.out.println("\n╔========================================╗");
             System.out.println("║   GESTIÓN DE TIENDA DE VIDEOJUEGOS    ║");
-            System.out.println("╚════════════════════════════════════════╝");
+            System.out.println("╚========================================╝");
             System.out.println("1. Mostrar todos los videojuegos");
             System.out.println("2. Mostrar todas las ventas");
             System.out.println("3. Buscar videojuegos por género");
-            System.out.println("4. Buscar videojuegos por plataforma");
-            System.out.println("5. Mostrar videojuegos con stock bajo (< 30)");
-            System.out.println("6. Mostrar ventas de un cliente");
-            System.out.println("7. Mostrar información completa de una venta (juego + venta)");
-            System.out.println("8. Mostrar estadísticas de ventas por juego");
+            System.out.println("4. Buscar ventas por cliente");
+            System.out.println("5. Insertar videojuego");
+            System.out.println("6. Insertar venta");
             System.out.println("0. Salir");
-            System.out.println("─────────────────────────────────────────");
+            System.out.println("-----------------------------------------");
             System.out.print("Seleccione una opción: ");
 
             opcion = scanner.nextInt();
@@ -71,25 +66,19 @@ public class Main {
                     buscarPorGenero(colVideojuegos, scanner);
                     break;
                 case 4:
-                    buscarPorPlataforma(colVideojuegos, scanner);
+                    buscarVentasPorCliente(colVentas, scanner);
                     break;
                 case 5:
-                    mostrarStockBajo(colVideojuegos);
+                    insertarVideojuego(colVideojuegos, scanner);
                     break;
                 case 6:
-                    mostrarVentasCliente(colVentas, scanner);
-                    break;
-                case 7:
-                    mostrarInfoCompletaVenta(colVideojuegos, colVentas, scanner);
-                    break;
-                case 8:
-                    mostrarEstadisticasVentas(colVideojuegos, colVentas);
+                    insertarVenta(colVentas, colVideojuegos, scanner);
                     break;
                 case 0:
                     System.out.println("\n¡Hasta pronto!");
                     break;
                 default:
-                    System.out.println("\n⚠ Opción no válida");
+                    System.out.println("\n(WARNING) Opción no válida");
             }
 
             if (opcion != 0) {
@@ -105,41 +94,42 @@ public class Main {
     // ========== MÉTODOS DE CONSULTA ==========
 
     private static void mostrarTodosVideojuegos(MongoCollection<Document> colVideojuegos) {
-        System.out.println("\n═══════════════════════════════════════");
+        System.out.println("\n=======================================");
         System.out.println("        TODOS LOS VIDEOJUEGOS");
-        System.out.println("═══════════════════════════════════════");
+        System.out.println("=======================================");
 
         int contador = 1;
         for (Document doc : colVideojuegos.find()) {
-            System.out.println("\n▸ Videojuego #" + contador++);
-            System.out.println("  • Título: " + doc.getString("titulo"));
-            System.out.println("  • Plataforma: " + doc.getString("plataforma"));
-            System.out.println("  • Género: " + doc.getString("genero"));
-            System.out.println("  • Precio: " + doc.getDouble("precio") + " €");
-            System.out.println("  • Stock: " + doc.getInteger("stock") + " unidades");
-            System.out.println("  • Clasificación: +" + doc.getInteger("clasificacion_edad"));
-            System.out.println("  • Desarrolladora: " + doc.getString("desarrolladora"));
-            System.out.println("  • Año: " + doc.getInteger("año_lanzamiento"));
-            System.out.println("  ───────────────────────────────────");
+            System.out.println("\n> Videojuego #" + contador++);
+            System.out.println("  * ID: " + doc.getString("id_juego"));
+            System.out.println("  * Título: " + doc.getString("titulo"));
+            System.out.println("  * Plataforma: " + doc.getString("plataforma"));
+            System.out.println("  * Género: " + doc.getString("genero"));
+            System.out.println("  * Precio: " + doc.getDouble("precio") + " €");
+            System.out.println("  * Stock: " + doc.getInteger("stock") + " unidades");
+            System.out.println("  * Clasificación: +" + doc.getInteger("clasificacion_edad"));
+            System.out.println("  * Desarrolladora: " + doc.getString("desarrolladora"));
+            System.out.println("  * Año: " + doc.getInteger("año_lanzamiento"));
+            System.out.println("  -----------------------------------");
         }
     }
 
     private static void mostrarTodasVentas(MongoCollection<Document> colVentas) {
-        System.out.println("\n═══════════════════════════════════════");
+        System.out.println("\n=======================================");
         System.out.println("           TODAS LAS VENTAS");
-        System.out.println("═══════════════════════════════════════");
+        System.out.println("=======================================");
 
         int contador = 1;
         for (Document doc : colVentas.find()) {
-            System.out.println("\n▸ Venta #" + contador++);
-            System.out.println("  • ID Venta: " + doc.getString("id_venta"));
-            System.out.println("  • ID Juego: " + doc.getString("id_juego"));
-            System.out.println("  • Cliente: " + doc.getString("cliente"));
-            System.out.println("  • Fecha: " + doc.getString("fecha"));
-            System.out.println("  • Cantidad: " + doc.getInteger("cantidad") + " unidad(es)");
-            System.out.println("  • Total: " + doc.getDouble("precio_total") + " €");
-            System.out.println("  • Método de pago: " + doc.getString("metodo_pago"));
-            System.out.println("  ───────────────────────────────────");
+            System.out.println("\n> Venta #" + contador++);
+            System.out.println("  * ID Venta: " + doc.getString("id_venta"));
+            System.out.println("  * ID Juego: " + doc.getString("id_juego"));
+            System.out.println("  * Cliente: " + doc.getString("cliente"));
+            System.out.println("  * Fecha: " + doc.getString("fecha"));
+            System.out.println("  * Cantidad: " + doc.getInteger("cantidad") + " unidad(es)");
+            System.out.println("  * Total: " + doc.getDouble("precio_total") + " €");
+            System.out.println("  * Método de pago: " + doc.getString("metodo_pago"));
+            System.out.println("  -----------------------------------");
         }
     }
 
@@ -147,84 +137,42 @@ public class Main {
         System.out.print("\nIntroduce el género a buscar: ");
         String genero = scanner.nextLine();
 
-        System.out.println("\n═══════════════════════════════════════");
+        System.out.println("\n=======================================");
         System.out.println("    VIDEOJUEGOS DE GÉNERO: " + genero.toUpperCase());
-        System.out.println("═══════════════════════════════════════");
+        System.out.println("=======================================");
 
         Document filtro = new Document("genero", new Document("$regex", genero).append("$options", "i"));
 
         int contador = 0;
         for (Document doc : colVideojuegos.find(filtro)) {
             contador++;
-            System.out.println("\n▸ " + doc.getString("titulo"));
-            System.out.println("  • Plataforma: " + doc.getString("plataforma"));
-            System.out.println("  • Precio: " + doc.getDouble("precio") + " €");
-            System.out.println("  • Stock: " + doc.getInteger("stock") + " unidades");
+            System.out.println("\n> Videojuego #" + contador);
+            System.out.println("  * ID: " + doc.getString("id_juego"));
+            System.out.println("  * Título: " + doc.getString("titulo"));
+            System.out.println("  * Plataforma: " + doc.getString("plataforma"));
+            System.out.println("  * Género: " + doc.getString("genero"));
+            System.out.println("  * Precio: " + doc.getDouble("precio") + " €");
+            System.out.println("  * Stock: " + doc.getInteger("stock") + " unidades");
+            System.out.println("  * Clasificación: +" + doc.getInteger("clasificacion_edad"));
+            System.out.println("  * Desarrolladora: " + doc.getString("desarrolladora"));
+            System.out.println("  * Año: " + doc.getInteger("año_lanzamiento"));
+            System.out.println("  -----------------------------------");
         }
 
         if (contador == 0) {
-            System.out.println("\n⚠ No se encontraron videojuegos del género '" + genero + "'");
+            System.out.println("\n(WARNING) No se encontraron videojuegos del género '" + genero + "'");
         } else {
-            System.out.println("\n✓ Total encontrados: " + contador);
+            System.out.println("\n(OK) Total encontrados: " + contador);
         }
     }
 
-    private static void buscarPorPlataforma(MongoCollection<Document> colVideojuegos, Scanner scanner) {
-        System.out.print("\nIntroduce la plataforma a buscar: ");
-        String plataforma = scanner.nextLine();
-
-        System.out.println("\n═══════════════════════════════════════");
-        System.out.println("    VIDEOJUEGOS PARA: " + plataforma.toUpperCase());
-        System.out.println("═══════════════════════════════════════");
-
-        Document filtro = new Document("plataforma", new Document("$regex", plataforma).append("$options", "i"));
-
-        int contador = 0;
-        for (Document doc : colVideojuegos.find(filtro)) {
-            contador++;
-            System.out.println("\n▸ " + doc.getString("titulo"));
-            System.out.println("  • Género: " + doc.getString("genero"));
-            System.out.println("  • Precio: " + doc.getDouble("precio") + " €");
-            System.out.println("  • Stock: " + doc.getInteger("stock") + " unidades");
-        }
-
-        if (contador == 0) {
-            System.out.println("\n⚠ No se encontraron videojuegos para la plataforma '" + plataforma + "'");
-        } else {
-            System.out.println("\n✓ Total encontrados: " + contador);
-        }
-    }
-
-    private static void mostrarStockBajo(MongoCollection<Document> colVideojuegos) {
-        System.out.println("\n═══════════════════════════════════════");
-        System.out.println("    VIDEOJUEGOS CON STOCK BAJO (<30)");
-        System.out.println("═══════════════════════════════════════");
-
-        Document filtro = new Document("stock", new Document("$lt", 30));
-
-        int contador = 0;
-        for (Document doc : colVideojuegos.find(filtro)) {
-            contador++;
-            System.out.println("\n▸ " + doc.getString("titulo"));
-            System.out.println("  • Plataforma: " + doc.getString("plataforma"));
-            System.out.println("  • Stock actual: " + doc.getInteger("stock") + " unidades ⚠");
-            System.out.println("  • Precio: " + doc.getDouble("precio") + " €");
-        }
-
-        if (contador == 0) {
-            System.out.println("\n✓ Todos los videojuegos tienen stock suficiente");
-        } else {
-            System.out.println("\n⚠ Total con stock bajo: " + contador);
-        }
-    }
-
-    private static void mostrarVentasCliente(MongoCollection<Document> colVentas, Scanner scanner) {
+    private static void buscarVentasPorCliente(MongoCollection<Document> colVentas, Scanner scanner) {
         System.out.print("\nIntroduce el nombre del cliente: ");
         String cliente = scanner.nextLine();
 
-        System.out.println("\n═══════════════════════════════════════");
+        System.out.println("\n=======================================");
         System.out.println("    VENTAS DE: " + cliente.toUpperCase());
-        System.out.println("═══════════════════════════════════════");
+        System.out.println("=======================================");
 
         Document filtro = new Document("cliente", new Document("$regex", cliente).append("$options", "i"));
 
@@ -236,95 +184,123 @@ public class Main {
             double precioVenta = doc.getDouble("precio_total");
             totalGastado += precioVenta;
 
-            System.out.println("\n▸ Venta " + doc.getString("id_venta"));
-            System.out.println("  • Fecha: " + doc.getString("fecha"));
-            System.out.println("  • Juego ID: " + doc.getString("id_juego"));
-            System.out.println("  • Cantidad: " + doc.getInteger("cantidad"));
-            System.out.println("  • Total: " + precioVenta + " €");
-            System.out.println("  • Método de pago: " + doc.getString("metodo_pago"));
+            System.out.println("\n> Venta #" + contador);
+            System.out.println("  * ID Venta: " + doc.getString("id_venta"));
+            System.out.println("  * ID Juego: " + doc.getString("id_juego"));
+            System.out.println("  * Cliente: " + doc.getString("cliente"));
+            System.out.println("  * Fecha: " + doc.getString("fecha"));
+            System.out.println("  * Cantidad: " + doc.getInteger("cantidad") + " unidad(es)");
+            System.out.println("  * Total: " + doc.getDouble("precio_total") + " €");
+            System.out.println("  * Método de pago: " + doc.getString("metodo_pago"));
+            System.out.println("  -----------------------------------");
         }
 
         if (contador == 0) {
-            System.out.println("\n⚠ No se encontraron ventas para el cliente '" + cliente + "'");
+            System.out.println("\n(WARNING) No se encontraron ventas para el cliente '" + cliente + "'");
         } else {
-            System.out.println("\n═══════════════════════════════════════");
-            System.out.println("✓ Total de compras: " + contador);
-            System.out.println("✓ Total gastado: " + String.format("%.2f", totalGastado) + " €");
+            System.out.println("\n=======================================");
+            System.out.println("(OK) Total de compras: " + contador);
+            System.out.println("(OK) Total gastado: " + String.format("%.2f", totalGastado) + " €");
         }
     }
 
-    private static void mostrarInfoCompletaVenta(MongoCollection<Document> colVideojuegos,
-                                                 MongoCollection<Document> colVentas,
-                                                 Scanner scanner) {
-        System.out.print("\nIntroduce el ID de la venta: ");
+    // ========== MÉTODOS DE INSERCIÓN ==========
+
+    private static void insertarVideojuego(MongoCollection<Document> colVideojuegos, Scanner scanner) {
+        System.out.println("\n=======================================");
+        System.out.println("        INSERTAR NUEVO VIDEOJUEGO");
+        System.out.println("=======================================");
+
+        System.out.print("ID del juego: ");
+        String idJuego = scanner.nextLine();
+
+        System.out.print("Título: ");
+        String titulo = scanner.nextLine();
+
+        System.out.print("Plataforma: ");
+        String plataforma = scanner.nextLine();
+
+        System.out.print("Género: ");
+        String genero = scanner.nextLine();
+
+        System.out.print("Precio: ");
+        double precio = scanner.nextDouble();
+
+        System.out.print("Stock: ");
+        int stock = scanner.nextInt();
+
+        System.out.print("Clasificación de edad: ");
+        int clasificacion = scanner.nextInt();
+        scanner.nextLine(); // Limpiar buffer
+
+        System.out.print("Desarrolladora: ");
+        String desarrolladora = scanner.nextLine();
+
+        System.out.print("Año de lanzamiento: ");
+        int anio = scanner.nextInt();
+        scanner.nextLine(); // Limpiar buffer
+
+        Document nuevoJuego = new Document("id_juego", idJuego)
+                .append("titulo", titulo)
+                .append("plataforma", plataforma)
+                .append("genero", genero)
+                .append("precio", precio)
+                .append("stock", stock)
+                .append("clasificacion_edad", clasificacion)
+                .append("desarrolladora", desarrolladora)
+                .append("año_lanzamiento", anio);
+
+        colVideojuegos.insertOne(nuevoJuego);
+        System.out.println("\n(OK) Videojuego insertado correctamente");
+    }
+
+    private static void insertarVenta(MongoCollection<Document> colVentas,
+                                      MongoCollection<Document> colVideojuegos,
+                                      Scanner scanner) {
+        System.out.println("\n=======================================");
+        System.out.println("           INSERTAR NUEVA VENTA");
+        System.out.println("=======================================");
+
+        System.out.print("ID de la venta: ");
         String idVenta = scanner.nextLine();
 
-        Document venta = colVentas.find(new Document("id_venta", idVenta)).first();
+        System.out.print("ID del juego: ");
+        String idJuego = scanner.nextLine();
 
-        if (venta == null) {
-            System.out.println("\n⚠ No se encontró ninguna venta con el ID '" + idVenta + "'");
+        // Verificar que el juego existe
+        Document juego = colVideojuegos.find(new Document("id_juego", idJuego)).first();
+        if (juego == null) {
+            System.out.println("\n(WARNING) No existe ningún videojuego con el ID '" + idJuego + "'");
             return;
         }
 
-        String idJuego = venta.getString("id_juego");
-        Document juego = colVideojuegos.find(new Document("id_juego", idJuego)).first();
+        System.out.println("Juego encontrado: " + juego.getString("titulo"));
 
-        System.out.println("\n═══════════════════════════════════════");
-        System.out.println("    INFORMACIÓN COMPLETA DE LA VENTA");
-        System.out.println("═══════════════════════════════════════");
+        System.out.print("Nombre del cliente: ");
+        String cliente = scanner.nextLine();
 
-        System.out.println("\n┌─ DATOS DE LA VENTA");
-        System.out.println("│ • ID Venta: " + venta.getString("id_venta"));
-        System.out.println("│ • Cliente: " + venta.getString("cliente"));
-        System.out.println("│ • Fecha: " + venta.getString("fecha"));
-        System.out.println("│ • Cantidad: " + venta.getInteger("cantidad") + " unidad(es)");
-        System.out.println("│ • Total pagado: " + venta.getDouble("precio_total") + " €");
-        System.out.println("│ • Método de pago: " + venta.getString("metodo_pago"));
+        System.out.print("Fecha (YYYY-MM-DD): ");
+        String fecha = scanner.nextLine();
 
-        if (juego != null) {
-            System.out.println("│");
-            System.out.println("├─ DATOS DEL VIDEOJUEGO");
-            System.out.println("│ • Título: " + juego.getString("titulo"));
-            System.out.println("│ • Plataforma: " + juego.getString("plataforma"));
-            System.out.println("│ • Género: " + juego.getString("genero"));
-            System.out.println("│ • Precio unitario: " + juego.getDouble("precio") + " €");
-            System.out.println("│ • Desarrolladora: " + juego.getString("desarrolladora"));
-            System.out.println("│ • Clasificación: +" + juego.getInteger("clasificacion_edad"));
-            System.out.println("└─────────────────────────────────────");
-        } else {
-            System.out.println("│");
-            System.out.println("└─ ⚠ No se encontró información del videojuego");
-        }
-    }
+        System.out.print("Cantidad: ");
+        int cantidad = scanner.nextInt();
 
-    private static void mostrarEstadisticasVentas(MongoCollection<Document> colVideojuegos,
-                                                  MongoCollection<Document> colVentas) {
-        System.out.println("\n═══════════════════════════════════════");
-        System.out.println("    ESTADÍSTICAS DE VENTAS POR JUEGO");
-        System.out.println("═══════════════════════════════════════");
+        System.out.print("Precio total: ");
+        double precioTotal = scanner.nextDouble();
+        scanner.nextLine(); // Limpiar buffer
 
-        for (Document juego : colVideojuegos.find()) {
-            String idJuego = juego.getString("id_juego");
-            String titulo = juego.getString("titulo");
+        System.out.print("Método de pago (Tarjeta/Efectivo/PayPal/Transferencia): ");
+        String metodoPago = scanner.nextLine();
 
-            Document filtro = new Document("id_juego", idJuego);
-            int totalVentas = 0;
-            int unidadesVendidas = 0;
-            double ingresosTotales = 0;
+        Document nuevaVenta = new Document("id_venta", idVenta)
+                .append("id_juego", idJuego)
+                .append("cliente", cliente)
+                .append("fecha", fecha)
+                .append("cantidad", cantidad)
+                .append("precio_total", precioTotal)
+                .append("metodo_pago", metodoPago);
 
-            for (Document venta : colVentas.find(filtro)) {
-                totalVentas++;
-                unidadesVendidas += venta.getInteger("cantidad");
-                ingresosTotales += venta.getDouble("precio_total");
-            }
-
-            if (totalVentas > 0) {
-                System.out.println("\n▸ " + titulo);
-                System.out.println("  • Número de ventas: " + totalVentas);
-                System.out.println("  • Unidades vendidas: " + unidadesVendidas);
-                System.out.println("  • Ingresos generados: " + String.format("%.2f", ingresosTotales) + " €");
-                System.out.println("  • Stock restante: " + juego.getInteger("stock") + " unidades");
-            }
-        }
+        colVentas.insertOne(nuevaVenta);
+        System.out.println("\n(OK) Venta insertada correctamente");
     }
 }
